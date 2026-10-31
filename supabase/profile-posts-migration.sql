@@ -6,10 +6,11 @@ alter table public.profiles add column if not exists bio text not null default '
 alter table public.profiles add column if not exists city text not null default '';
 alter table public.profiles add column if not exists campus text not null default '';
 alter table public.profiles add column if not exists interests text not null default '';
+alter table public.profiles add column if not exists avatar_url text;
 
 -- Публичная проекция: не открываем email и другие приватные поля auth.users.
 create or replace view public.public_profiles as
-select id, name, username, subtitle, bio, city, campus, interests, created_at
+select id, name, username, subtitle, bio, city, campus, interests, created_at, avatar_url
 from public.profiles;
 grant select on public.public_profiles to anon, authenticated;
 grant update (name, username, subtitle, bio, city, campus, interests) on public.profiles to authenticated;

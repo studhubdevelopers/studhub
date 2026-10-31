@@ -7,7 +7,7 @@ const I18N = {
   ru: {
     'nav.home': 'Главная', 'nav.communities': 'Сообщества', 'nav.discussions': 'Обсуждения',
     'nav.myprojects': 'Мои проекты', 'nav.files': 'Мои файлы', 'nav.subs': 'Подписки',
-    'nav.wallet': 'Кошелёк', 'nav.settings': 'Настройки', 'nav.mycomm': 'Мои сообщества', 'nav.allcomm': 'Все сообщества ↗',
+    'nav.wallet': 'Кошелёк', 'nav.settings': 'Настройки', 'nav.rules': 'Правила', 'auth.readRules': 'Читать правила', 'nav.mycomm': 'Мои сообщества', 'nav.allcomm': 'Все сообщества ↗',
     'hdr.search': 'Поиск по StudHub...', 'hdr.create': 'Создать проект', 'hdr.notifs': 'Уведомления',
     'menu.profile': 'Мой профиль', 'menu.settings': 'Настройки', 'menu.switch': 'Сменить аккаунт', 'menu.logout': 'Выйти',
     'home.title': 'Проекты, которым нужна поддержка',
@@ -67,7 +67,7 @@ const I18N = {
   en: {
     'nav.home': 'Home', 'nav.communities': 'Communities', 'nav.discussions': 'Discussions',
     'nav.myprojects': 'My projects', 'nav.files': 'My files', 'nav.subs': 'Supported',
-    'nav.wallet': 'Wallet', 'nav.settings': 'Settings', 'nav.mycomm': 'My communities', 'nav.allcomm': 'All communities ↗',
+    'nav.wallet': 'Wallet', 'nav.settings': 'Settings', 'nav.rules': 'Rules', 'auth.readRules': 'Read the rules', 'nav.mycomm': 'My communities', 'nav.allcomm': 'All communities ↗',
     'hdr.search': 'Search StudHub...', 'hdr.create': 'Create project', 'hdr.notifs': 'Notifications',
     'menu.profile': 'My profile', 'menu.settings': 'Settings', 'menu.switch': 'Switch account', 'menu.logout': 'Log out',
     'home.title': 'Projects that need support',
@@ -135,4 +135,5 @@ function applyI18n() {
   document.documentElement.lang = currentLang;
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  if (typeof renderRules === 'function') renderRules();   // текст правил хранится в js/rules.js
 }

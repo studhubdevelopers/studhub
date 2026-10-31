@@ -5,17 +5,18 @@ const isOwnProfile = !(typeof viewingProfile !== 'undefined' && viewingProfile) 
 const initials = getInitials(user.name);
 const ownUser = getCurrentUser();
 const ownInitials = getInitials(ownUser.name);
+const avatarUrl = user.avatar_url || user.avatar || '';
+const ownAvatarUrl = ownUser.avatar_url || ownUser.avatar || '';
+const paintAvatar = (el, url, text) => { if (!el) return; el.textContent = url ? '' : text; el.style.backgroundImage = url ? `url(\"${String(url).replace(/[\"\\]/g, '')}\")` : ''; el.style.backgroundSize = url ? 'cover' : ''; el.style.backgroundPosition = url ? 'center' : ''; el.style.backgroundRepeat = 'no-repeat'; };
 document.getElementById('profileName').textContent = user.name || 'Студент';
 const editSection = document.querySelector('.profile-edit-section'); if (editSection) editSection.style.display = isOwnProfile ? '' : 'none';
 const coverEdit = document.querySelector('.cover-edit-btn'); if (coverEdit) coverEdit.style.display = isOwnProfile ? '' : 'none';
 const profileAvatar = document.getElementById('profileAvatarLarge');
 const headerAvatar = document.getElementById('userAvatarHeader');
-profileAvatar.textContent = user.avatar ? '' : initials;
-headerAvatar.textContent = ownUser.avatar ? '' : ownInitials;
-profileAvatar.style.backgroundImage = user.avatar ? `url("${user.avatar}")` : '';
-headerAvatar.style.backgroundImage = ownUser.avatar ? `url("${ownUser.avatar}")` : '';
+paintAvatar(profileAvatar, avatarUrl, initials);
+paintAvatar(headerAvatar, ownAvatarUrl, ownInitials);
 document.getElementById('userNameHeader').textContent = ownUser.name;
-document.querySelectorAll('.composer-avatar').forEach(el => el.textContent = initials);
+document.querySelectorAll('.composer-avatar').forEach(el => paintAvatar(el, ownAvatarUrl, ownInitials));
 if (document.getElementById('profileSubtitle')) document.getElementById('profileSubtitle').textContent = [user.subtitle, user.city].filter(Boolean).join(' · ') || (isOwnProfile ? 'Добавьте информацию о себе в настройках профиля' : 'Пользователь StudHub');
 const acc = isOwnProfile ? getActiveAccount() : null;
 const isDemoProfile = !acc || user.username === 'dimidrol'; // демо-цифры (подписчики, отзывы) только у перенесённого демо-профиля
@@ -69,11 +70,12 @@ const avatarFile = document.getElementById('editProfileAvatar').files[0];
 if (avatarFile) {
   if (!avatarFile.type.startsWith('image/')) { showToast('Выберите файл изображения', 'error'); return; }
   if (avatarFile.size > 2 * 1024 * 1024) { showToast('Аватар должен быть не больше 2 МБ', 'error'); return; }
-  user.avatar = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(avatarFile); });
+  if (!BACKEND || !sb) { showToast('Для общей аватарки необходимо подключение к Supabase', 'error'); return; }
 }
 if (BACKEND && sb && typeof backendSavePublicProfile === 'function') {
-  const result = await backendSavePublicProfile(user);
-  if (result && result.error) { showToast('Не удалось сохранить профиль в базе данных', 'error'); return; }
+  const result = await backendSavePublicProfile(user, avatarFile || null);
+  if (result && result.error) { console.error('Ошибка сохранения профиля:', result.error); showToast('Не удалось сохранить профиль: ' + (result.message || result.error.message || 'проверьте настройки Supabase'), 'error'); return; }
+  if (result && result.avatar_url) user.avatar_url = result.avatar_url;
 }
 saveCurrentUser(user);
 closeEditProfileModal();
