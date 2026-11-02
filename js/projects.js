@@ -192,8 +192,8 @@ if (newDesc === null) return;
 const projects = getProjects();
 const idx = projects.findIndex(x => x.id === id);
 if (idx !== -1) {
-projects[idx].name = newName || projects[idx].name;
-projects[idx].desc = newDesc || projects[idx].desc;
+projects[idx].name = (newName || projects[idx].name).slice(0, 80);
+projects[idx].desc = (newDesc || projects[idx].desc).slice(0, 2000);
 const pj = projects[idx];
 if (pj.pubId) {
 if (BACKEND) {

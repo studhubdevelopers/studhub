@@ -1,11 +1,7 @@
 // Лента на главной: посты и голосование
-const homePostsData = [
-{ id: 1, community: 'КИТиС', author: 'П. Глушнев', time: '13 часов назад', timeSort: 13, tag: 'Кампус', tagClass: 'green', title: '«КИТиС будет перестроен»', text: null, hasImage: true, votes: 67, comments: 24, hasJoin: true, avatarClass: 'green', avatarLetter: 'К' },
-{ id: 2, community: 'КИТиС', author: 'К. Дейко', time: '11 сентября 2026', timeSort: 720, tag: 'Жизнь в общаге', tagClass: 'purple', title: '«СЕАНС ТАРОЛОГИИ В ОБЩАГЕ СЕГОДНЯ НОЧЬЮ»', text: null, hasImage: false, hasStar: true, votes: -10, comments: 18, hasJoin: false, avatarClass: 'green', avatarLetter: 'К' },
-{ id: 3, community: 'БФУ им. Канта', author: 'Л. Галлахер', time: '2 часа назад', timeSort: 2, tag: 'Ищу команду', tagClass: 'blue', title: 'Делаем карту тихих мест для учёбы.', text: 'Собираем библиотеки, свободные аудитории и кофейни рядом с кампусом. Нужны дизайнер и фронтендер — можно без опыта, будем разбираться вместе.', hasImage: false, votes: 42, comments: 9, hasJoin: false, avatarClass: 'purple', avatarLetter: 'Б' }
-];
-const homeVoteState = { 1: 'up', 2: 'down', 3: 'up' };
-const homeOriginalVotes = { 1: 67, 2: -10, 3: 42 };
+const homePostsData = [];
+const homeVoteState = {};
+const homeOriginalVotes = {};
 function renderPosts(sortType) {
 const container = document.getElementById('postsContainer');
 if (!container) return;
@@ -20,7 +16,7 @@ const upActive = homeVoteState[post.id] === 'up' ? 'active' : '';
 const downActive = homeVoteState[post.id] === 'down' ? 'active' : '';
 let imageHtml = '';
 if (post.hasImage) {
-imageHtml = `<div class="post-image"><div class="building-placeholder"><div class="sky"></div><div class="building"><div class="banner">КОЛЛЕДЖ ИНФОРМАЦИОННЫХ<br>ТЕХНОЛОГИЙ И СТРОИТЕЛЬСТВА<br><span style="font-size:9px;">КИТиС · тел: +7 (4012) 91 61 06</span></div><div class="windows">${Array(32).fill('<div class="window"></div>').join('')}</div><div class="welcome">Добро пожаловать!</div></div></div></div>`;
+imageHtml = '';
 }
 const starHtml = `<div class="post-stat star-btn" onclick="toggleStar(this)"><svg viewBox="0 0 24 24"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"/></svg></div>`;
 const joinHtml = post.hasJoin ? `<button class="btn-join"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Вступить</button><button class="btn-more">···</button>` : `<button class="btn-more">···</button>`;

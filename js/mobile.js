@@ -4,6 +4,22 @@ function closeMobileMenu() { document.body.classList.remove('menu-open'); }
 function toggleMobileMenu() { document.body.classList.toggle('menu-open'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileMenu(); });
 
+// Поиск на телефоне: лупа в шапке раскрывает строку поиска на всю ширину
+function openMobileSearch() {
+  closeMobileMenu();
+  document.body.classList.add('search-open');
+  const i = document.getElementById('searchInput');
+  if (i) i.focus(); // focus() внутри обработчика клика — иначе iOS не покажет клавиатуру
+}
+function closeMobileSearch() {
+  document.body.classList.remove('search-open');
+  const i = document.getElementById('searchInput');
+  if (i) { i.blur(); i.value = ''; }
+  const r = document.getElementById('searchResults'); if (r) r.classList.remove('show');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileSearch(); });
+window.addEventListener('resize', () => { if (window.innerWidth > 900) document.body.classList.remove('search-open'); });
+
 // подсветка активного пункта нижней панели
 function syncBottomNav() {
   document.querySelectorAll('#bottomNav a[data-v]').forEach(a => a.classList.toggle('active', a.dataset.v === currentView || (currentView === 'project' && a.dataset.v === 'home')));

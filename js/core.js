@@ -1,6 +1,6 @@
 // Основа: хелперы, localStorage, тосты, навигация, меню
 function getInitials(name) { if (!name) return '??'; return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2); }
-function getCurrentUser() { return JSON.parse(userStore.getItem('currentUser') || '{"name":"Дмитрий С.","campus":"kitis","subtitle":"КИТиС · 1 курс · Калининград","bio":"Пишу код, собираю команду и превращаю идеи в проекты.","username":"dimidrol","city":"Калининград","interests":"Веб-разработка,Дизайн интерфейсов,React,TypeScript,Хакатоны,Чай и код"}'); }
+function getCurrentUser() { return JSON.parse(userStore.getItem('currentUser') || '{"name":"Студент","campus":"other","subtitle":"","bio":"","username":"student","city":"","interests":""}'); }
 function saveCurrentUser(user) {
   const prev = userStore.getItem('currentUser');
   userStore.setItem('currentUser', JSON.stringify(user));
