@@ -74,7 +74,15 @@ async function publishProjectUpdate(id){
    const all=JSON.parse(localStorage.getItem(PROJECT_UPDATES_KEY)||'[]');all.unshift({...row,id:'u'+Date.now()});localStorage.setItem(PROJECT_UPDATES_KEY,JSON.stringify(all));
   }
   renderProjectPage();showToast('Обновление опубликовано','success');
- }catch(e){console.error(e);showToast(BACKEND?'Не удалось опубликовать. Проверьте SQL-миграцию project_updates.':'Не удалось сохранить обновление','error')}
+ }catch(e){console.error('Дневник проекта: не удалось опубликовать',e);showToast(BACKEND?projectUpdateErrorText(e):'Не удалось сохранить обновление','error')}
+}
+// Понятная причина ошибки публикации: нет таблицы, нет прав, не прошли ограничения длины или сеть.
+function projectUpdateErrorText(e){
+ const code=(e&&e.code)||'',m=(e&&(e.message||e.details))||'';
+ if(code==='PGRST205'||code==='PGRST204'||code==='42P01'||code==='42703'||/schema cache|does not exist/i.test(m))return 'Таблица project_updates не найдена или устарела: выполните supabase/project-updates-migration.sql';
+ if(code==='42501'||/row-level security|permission denied/i.test(m))return 'Публиковать новости может только автор проекта';
+ if(code==='23514')return 'Заголовок — от 3 до 100 символов, текст — от 5 до 3000';
+ return backendErrorText(e);
 }
 function projectMilestones(p,raised){
  const steps=[{v:.25,t:'Первый результат',d:'Проект получил стартовую поддержку'},{v:.5,t:'Половина пути',d:'Можно переходить к активной реализации'},{v:.75,t:'Финишная прямая',d:'Большая часть бюджета уже собрана'},{v:1,t:'Цель достигнута',d:'Сбор полностью профинансирован'}];
