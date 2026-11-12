@@ -50,6 +50,43 @@ function daysLeftText(p){
  return 'Осталось '+d+' '+w;
 }
 
+
+/* ===== Новости проекта и этапы развития ===== */
+const PROJECT_UPDATES_KEY='studhub_project_updates';
+let PROJECT_UPDATES_CACHE=[];
+function projectUpdates(id){
+ if(BACKEND)return PROJECT_UPDATES_CACHE.filter(x=>x.projectId===id);
+ try{return JSON.parse(localStorage.getItem(PROJECT_UPDATES_KEY)||'[]').filter(x=>x.projectId===id)}catch(e){return[]}
+}
+async function publishProjectUpdate(id){
+ const p=findCampaign(id);if(!p||p.ownerId!==activeUserId())return;
+ const title=(document.getElementById('projectUpdateTitle')?.value||'').trim().slice(0,100);
+ const body=(document.getElementById('projectUpdateBody')?.value||'').trim().slice(0,3000);
+ if(title.length<3||body.length<5){showToast('Добавьте заголовок и текст новости','error');return}
+ const row={projectId:id,title,body,authorId:activeUserId(),authorName:getCurrentUser().name||'Автор',createdAt:Date.now()};
+ try{
+  if(BACKEND){
+   const {data,error}=await sb.from('project_updates').insert({project_id:id,author_id:row.authorId,title,body}).select('*').single();
+   if(error)throw error;
+   row.id=data.id;row.authorName=data.author_name||row.authorName;row.createdAt=Date.parse(data.created_at)||Date.now();
+   PROJECT_UPDATES_CACHE.unshift(row);
+  }else{
+   const all=JSON.parse(localStorage.getItem(PROJECT_UPDATES_KEY)||'[]');all.unshift({...row,id:'u'+Date.now()});localStorage.setItem(PROJECT_UPDATES_KEY,JSON.stringify(all));
+  }
+  renderProjectPage();showToast('Обновление опубликовано','success');
+ }catch(e){console.error(e);showToast(BACKEND?'Не удалось опубликовать. Проверьте SQL-миграцию project_updates.':'Не удалось сохранить обновление','error')}
+}
+function projectMilestones(p,raised){
+ const steps=[{v:.25,t:'Первый результат',d:'Проект получил стартовую поддержку'},{v:.5,t:'Половина пути',d:'Можно переходить к активной реализации'},{v:.75,t:'Финишная прямая',d:'Большая часть бюджета уже собрана'},{v:1,t:'Цель достигнута',d:'Сбор полностью профинансирован'}];
+ return `<div class="project-milestones">${steps.map(x=>`<div class="project-milestone ${raised>=p.goal*x.v?'reached':''}"><span class="pm-dot">${raised>=p.goal*x.v?'✓':''}</span><div><b>${x.t}</b><small>${x.d}</small><strong>${Math.round(x.v*100)}% · ${fmtRub(Math.ceil(p.goal*x.v))}</strong></div></div>`).join('')}</div>`;
+}
+function projectUpdatesMarkup(p,own){
+ const items=projectUpdates(p.id);
+ return `<section class="pp-card pp-updates"><div class="pp-section-head"><div><h2 class="pp-h2">Дневник проекта</h2><p class="pp-subtitle">Новости, результаты и отчёты от команды</p></div><span class="pp-update-count">${items.length}</span></div>
+ ${own?`<div class="pp-update-composer"><input id="projectUpdateTitle" maxlength="100" placeholder="Заголовок обновления"><textarea id="projectUpdateBody" maxlength="3000" rows="3" placeholder="Что нового? Расскажите, чего удалось добиться и что дальше…"></textarea><button class="btn-submit" onclick="publishProjectUpdate('${p.id}')">Опубликовать новость</button></div>`:''}
+ ${items.length?items.map(u=>`<article class="pp-update"><div class="pp-update-date">${new Date(u.createdAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})} · ${esc(u.authorName||p.owner)}</div><h3>${esc(u.title)}</h3><p>${esc(u.body).replace(/\n/g,'<br>')}</p></article>`).join(''):`<div class="pp-updates-empty"><b>Здесь будет история проекта</b><span>${own?'Публикуйте новости, чтобы ваши сторонники видели, как продвигается работа.':'Автор пока не публиковал новости. Возвращайтесь, чтобы следить за развитием проекта.'}</span></div>`}</section>`;
+}
+
 /* ===== Карточки ===== */
 function fundingCard(p){
  const s=projectStats(p),st=campaignStatus(p),open=isOpen(p),own=p.pub&&p.ownerId===activeUserId();
@@ -103,6 +140,8 @@ function renderProjectPage(){
   <div class="pp-main">
    <section class="pp-card"><h2 class="pp-h2">О проекте</h2><p class="pp-text">${esc(p.about||p.desc||'Автор пока не добавил описание.')}</p></section>
    <section class="pp-card"><h2 class="pp-h2">Награды за поддержку</h2>${rw.length?`<div class="pp-rewards">${rw.slice().sort((a,b)=>a.amount-b.amount).map(r=>`<div class="pp-reward${s.mine>=r.amount?' got':''}"><div><div class="pp-reward-amt">от ${fmtRub(r.amount)}</div><div class="pp-reward-title">${esc(r.title)}</div>${r.desc?`<div class="pp-reward-desc">${esc(r.desc)}</div>`:''}</div>${s.mine>=r.amount?'<span class="pp-got">✓ ваша награда</span>':(open&&!own?`<button class="btn-cancel" onclick="openSupport('${p.id}',${r.amount})">Выбрать</button>`:'')}</div>`).join('')}</div>`:'<p class="pp-text" style="color:var(--muted)">Автор не добавил награды — любая сумма поддержки помогает проекту.</p>'}</section>
+   <section class="pp-card"><h2 class="pp-h2">Путь к результату</h2><p class="pp-subtitle">Промежуточные этапы сбора — видно, как сообщество приближает цель</p>${projectMilestones(p,s.raised)}</section>
+   ${projectUpdatesMarkup(p,own)}
    <section class="pp-card"><h2 class="pp-h2">Недавние поддержки</h2>${recent.length?recent.map(d=>`<div class="supporter-row"><span>${d.anon?'Аноним':esc(d.name)}${d.msg?' · «'+esc(d.msg)+'»':''}</span><strong style="color:var(--accent)">${fmtRub(d.amount)}</strong></div>`).join(''):'<p class="pp-text" style="color:var(--muted)">Пока никто не поддержал — станьте первым.</p>'}</section>
    <section class="pp-card"><div id="fundRate"></div></section>
   </div>
